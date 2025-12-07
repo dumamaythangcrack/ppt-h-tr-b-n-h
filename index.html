@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mẫu Xử Lý Tình Huống - Hoạt Động Trải Nghiệm</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            /* Color Palette: Pastel Yellow - White - Soft Brown */
+            --bg-cream: #FDFBF7;
+            --bg-yellow: #FCEFC7;
+            --bg-white: #FFFFFF;
+            --text-primary: #5D4037; /* Nâu đậm */
+            --text-secondary: #8D6E63; /* Nâu nhạt */
+            --accent: #D4A373; /* Màu vàng nâu/gold */
+            --shadow-soft: 0 15px 35px rgba(93, 64, 55, 0.1);
+            --shadow-card: 0 8px 20px rgba(93, 64, 55, 0.08);
+            --radius: 20px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-cream);
+            color: var(--text-primary);
+            overflow: hidden; /* Ngăn scroll mặc định */
+            height: 100vh;
+            width: 100vw;
+            position: relative;
+        }
+
+        /* --- CONTROLS --- */
+        .controls {
+            position: fixed;
+            bottom: 30px;
+            right: 40px;
+            z-index: 1000;
+            display: flex;
+            gap: 15px;
+        }
+
+        .btn-nav {
+            background: var(--bg-white);
+            border: 1px solid var(--text-secondary);
+            color: var(--text-primary);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 20px;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow-card);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-nav:hover {
+            background: var(--text-primary);
+            color: var(--bg-white);
+            transform: translateY(-3px);
+        }
+
+        .keyboard-hint {
+            position: fixed;
+            bottom: 30px;
+            left: 40px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        /* --- SLIDE CONTAINER --- */
+        #presentation {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            perspective: 1000px; /* Cho hiệu ứng 3D */
+        }
+
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 80px;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.6s ease, visibility 0.6s;
+            background-color: var(--bg-cream);
+            overflow: hidden;
+        }
+
+        .slide.active {
+            opacity: 1;
+            visibility: visible;
+            z-index: 10;
+        }
+
+        /* --- TYPOGRAPHY --- */
+        h1, h2, h3 {
+            font-family: 'Playfair Display', serif;
+            margin-bottom: 1.5rem;
+            line-height: 1.2;
+        }
+
+        h1 { font-size: 3.5rem; color: var(--text-primary); }
+        h2 { font-size: 2.8rem; color: var(--text-primary); }
+        h3 { font-size: 2rem; color: var(--text-secondary); }
+        p { 
+            font-size: 1.4rem; 
+            line-height: 1.6; 
+            color: #6D4C41; 
+            max-width: 900px;
+            text-align: center;
+        }
+
+        .highlight { color: var(--accent); font-weight: 600; }
+        .icon-large { font-size: 4rem; margin-bottom: 20px; display: block; }
+        
+        /* --- LAYOUTS --- */
+        /* Card Style */
+        .card {
+            background: var(--bg-white);
+            padding: 50px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-soft);
+            max-width: 800px;
+            width: 100%;
+            text-align: center;
+            border-left: 5px solid var(--accent);
+        }
+
+        /* Split Layout */
+        .split-layout {
+            display: flex;
+            gap: 50px;
+            align-items: center;
+            max-width: 1200px;
+        }
+        .split-text { flex: 1; text-align: left; }
+        .split-visual { 
+            flex: 1; 
+            background: var(--bg-yellow); 
+            height: 300px; 
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            box-shadow: var(--shadow-card);
+        }
+
+        /* Quote Layout */
+        .quote-box {
+            font-size: 2.5rem;
+            font-style: italic;
+            font-family: 'Playfair Display', serif;
+            position: relative;
+            padding: 40px;
+        }
+        .quote-box::before {
+            content: "“";
+            font-size: 6rem;
+            color: var(--accent);
+            position: absolute;
+            top: -20px;
+            left: -20px;
+            opacity: 0.3;
+        }
+
+        /* Step Layout */
+        .step-number {
+            font-size: 8rem;
+            font-weight: 700;
+            color: rgba(212, 163, 115, 0.2);
+            position: absolute;
+            top: 20px;
+            left: 40px;
+            z-index: -1;
+        }
+
+        /* --- ANIMATIONS --- */
+        /* Quy tắc: Animation chỉ chạy khi có class .active */
+        
+        /* 1. Fade Up */
+        .active .anim-fade-up {
+            animation: fadeUp 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+        }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 2. Slide Left */
+        .active .anim-slide-left {
+            animation: slideLeft 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+        }
+        @keyframes slideLeft {
+            from { opacity: 0; transform: translateX(50px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* 3. Slide Right */
+        .active .anim-slide-right {
+            animation: slideRight 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+        }
+        @keyframes slideRight {
+            from { opacity: 0; transform: translateX(-50px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* 4. Zoom In */
+        .active .anim-zoom-in {
+            animation: zoomIn 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+        }
+        @keyframes zoomIn {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        /* 5. Scale Morph (Elastic) */
+        .active .anim-morph {
+            animation: morph 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+        }
+        @keyframes morph {
+            from { opacity: 0; transform: scale(0.5); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        /* 6. Blur In */
+        .active .anim-blur {
+            animation: blurIn 1s ease-out forwards;
+        }
+        @keyframes blurIn {
+            from { opacity: 0; filter: blur(20px); }
+            to { opacity: 1; filter: blur(0); }
+        }
+
+        /* 7. Flip In */
+        .active .anim-flip {
+            animation: flipIn 0.8s ease-out forwards;
+            backface-visibility: visible;
+        }
+        @keyframes flipIn {
+            from { opacity: 0; transform: perspective(400px) rotateX(90deg); }
+            to { opacity: 1; transform: perspective(400px) rotateX(0); }
+        }
+
+        /* Nút Restart */
+        .btn-restart {
+            margin-top: 30px;
+            padding: 15px 30px;
+            background: var(--text-primary);
+            color: #fff;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            transition: transform 0.2s;
+        }
+        .btn-restart:hover { transform: scale(1.05); }
+
+    </style>
+</head>
+<body>
+
+<div id="presentation">
+
+    <div class="slide active">
+        <div class="card anim-zoom-in">
+            <span class="icon-large">🌱</span>
+            <h3>Mẫu Xử Lý Tình Huống</h3>
+            <h1 style="color: var(--accent); margin: 20px 0;">Hỗ trợ bạn H</h1>
+            <p>Có hoàn cảnh gia đình khó khăn</p>
+            <div style="margin-top: 20px; font-size: 0.9rem; color: #999;">Hoạt động trải nghiệm hướng nghiệp</div>
+        </div>
+    </div>
+
+    <div class="slide">
+        <div class="split-layout">
+            <div class="split-visual anim-slide-right">👤</div>
+            <div class="split-text anim-slide-left">
+                <h2>Giới thiệu về H</h2>
+                <p>H là một học sinh <span class="highlight">chăm ngoan, học giỏi</span>.</p>
+                <p>Tính cách có phần trầm lắng và sống nội tâm.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide">
+        <div class="card anim-fade-up">
+            <h2>Hoàn cảnh gia đình</h2>
+            <ul style="text-align: left; margin: 20px 40px; list-style: none; font-size: 1.3rem; line-height: 2;">
+                <li>💔 Bố mất sớm</li>
+                <li>🏥 Mẹ đang ốm nặng</li>
+                <li>🏚️ Kinh tế gia đình rơi vào cảnh eo hẹp</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="slide">
+        <div class="split-layout">
+            <div class="split-text anim-blur">
+                <h2>Tác động tiêu cực</h2>
+                <p>Sự khó khăn đè nặng lên đôi vai nhỏ bé.</p>
+                <br>
+                <p>📉 Thiếu thốn trang thiết bị học tập.</p>
+                <p>🧠 Ảnh hưởng lớn đến tinh thần và tâm lý.</p>
+            </div>
+            <div class="split-visual anim-morph" style="background: #EFEBE9;">🌩️</div>
+        </div>
+    </div>
+
+    <div class="slide">
+        <div class="card anim-flip" style="background-color: var(--bg-yellow);">
+            <span class="icon-large">📢</span>
+            <h2>Thông tin từ GVCN</h2>
+            <p>Giáo viên chủ nhiệm đã nắm bắt tình hình.</p>
+            <p>Tổ chức một buổi <span class="highlight">họp lớp khẩn</span> để thông báo.</p>
+        </div>
+    </div>
+
+    <div class="slide">
+        <h2 class="anim-zoom-in">Cuộc họp lớp diễn ra</h2>
+        <p class="anim-fade-up" style="margin-top: 20px;">Không khí nghiêm túc và sẻ chia.</p>
+        <p class="anim-fade-up" style="animation-delay: 0.2s;">Tất cả thành viên cùng ngồi lại thảo luận.</p>
+        <div class="anim-morph" style="font-size: 3rem; margin-top: 30px;">🤝</div>
+    </div>
+
+    <div class="slide">
+        <div class="quote-box anim-slide-left" style="background: #fff; border-radius: 20px; box-shadow: var(--shadow-soft);">
+            <p>Làm thế nào để chúng ta hỗ trợ H một cách <span class="highlight">hiệu quả</span> và <span class="highlight">tế nhị</span> nhất?</p>
+        </div>
+    </div>
+
+    <div class="slide">
+        <div class="step-number">01</div>
+        <div class="card anim-morph">
+            <h3>Mục Tiêu Xử Lý</h3>
+            <h2>Tinh thần tương thân tương ái</h2>
+            <p>Xây dựng sự đoàn kết, yêu thương giữa các thành viên trong tập thể lớp.</p>
+        </div>
+    </div>
+
+    <div class="slide">
+        <div class="step-number">02</div>
+        <div class="split-layout">
+            <div class="split-visual anim-slide-right" style="background: #fff;">📚</div>
+            <div class="split-text anim-slide-left">
+                <h2>Tiếp sức đến trường</h2>
+                <p>Giúp H vượt qua giai đoạn khó khăn nhất.</p>
+                <p>Đảm bảo H có đủ điều kiện để tiếp tục việc học.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide">
+        <div class="step-number">03</div>
+        <div class="card anim-blur" style="border-left-color: #8D6E63;">
+            <h2>Giáo dục lòng nhân ái</h2>
+            <p>Bài học thực tế về trách nhiệm cộng đồng.</p>
+            <p>Khơi dậy lòng trắc ẩn trong mỗi học sinh.</p>
+        </div>
+    </div>
+
+    <div class="slide">
+        <div class="step-number">04</div>
+        <h2 class="anim-flip">Kỹ năng tổ chức</h2>
+        <p class="anim-fade-up">Rèn luyện kỹ năng lập kế hoạch hỗ trợ người khác.</p>
+        <p class="anim-fade-up">Biến lòng tốt thành hành động thiết thực.</p>
+    </div>
+
+    <div class="slide">
+        <div class="card anim-zoom-in">
+            <span class="icon-large">🌪️</span>
+            <h2>Nguyên nhân khách quan</h2>
+            <p>Biến cố gia đình ập đến bất ngờ (bố mất, mẹ ốm).</p>
+            <p>Nguồn lực tài chính bị cắt giảm nghiêm trọng.</p>
+        </div>
+    </div>
+
+    <div class="slide">
+        <div class="split-layout">
+            <div class="split-text anim-slide-right">
+                <h2>Nguyên nhân chủ quan</h2>
+                <p>H còn nhỏ, chưa đủ khả năng lao động kiếm sống.</p>
+                <p>Cú sốc tinh thần ảnh hưởng đến khả năng xoay sở.</p>
+            </div>
+            <div class="split-visual anim-slide-left">🧩</div>
+        </div>
+    </div>
+
+    <div class="slide">
+        <div class="quote-box anim-fade-up">
+            <p>Cần sức mạnh của tập thể vì một cá nhân không thể gánh vác tất cả.</p>
+        </div>
+    </div>
+
+    <div class="slide">
+        <div class="step-number">B1</div>
+        <div class="card anim-slide-left">
+            <h2>Giáo viên chia sẻ</h2>
+            <p>Cô chủ nhiệm trình bày rõ ràng hoàn cảnh của H.</p>
+            <p>Mục đích: Để cả lớp thấu hiểu và đồng cảm sâu sắc.</p>
+        </div>
+    </div>
+
+    <div class="slide">
+        <div class="step-number">B2</div>
+        <div class="split-layout">
+            <div class="split-visual anim-morph">🗣️</div>
+            <div class="split-text anim-blur">
+                <h2>Lớp trưởng điều hành</h2>
+                <p>Tổ chức buổi thảo luận mở.</p>
+                <p>Khuyến khích các bạn đưa ra ý kiến đóng góp.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide">
+        <div class="step-number">B3</div>
+        <h2 class="anim-zoom-in">Đề xuất phương án</h2>
+        <p class="anim-fade-up">Các giải pháp cụ thể được đưa ra.</p>
+    </div>
+
+    <div class="slide">
+        <div class="card anim-flip" style="background: var(--bg-yellow);">
+            <span class="icon-large">💰</span>
+            <h2>Quyên góp tự nguyện</h2>
+            <p>Phát động phong trào nuôi heo đất tại lớp.</p>
+            <p>Trên tinh thần "lá lành đùm lá rách", không bắt buộc số lượng.</p>
+        </div>
+    </div>
+
+    <div class="slide">
+        <div class="split-layout">
+            <div class="split-text anim-slide-left">
+                <h2>Phong trào "Giúp bạn đến trường"</h2>
+                <p>Liên hệ với Liên đội hoặc Đoàn trường.</p>
+                <p>Lan tỏa thông điệp để nhận sự hỗ trợ rộng hơn.</p>
+            </div>
+            <div class="split-visual anim-slide-right">🚩</div>
+        </div>
+    </div>
+
+    <div class="slide">
+        <div class="card anim-fade-up">
+            <span class="icon-large">💌</span>
+            <h2>Thăm hỏi tinh thần</h2>
+            <p>Phân công các tổ thay phiên đến thăm nhà.</p>
+            <p>Giúp đỡ H chép bài khi phải nghỉ chăm mẹ.</p>
+        </div>
+    </div>
+
+    <div class="slide">
+        <div class="split-layout">
+            <div class="split-visual anim-blur">🎓</div>
+            <div class="split-text anim-morph">
+                <h2>Hỗ trợ chính sách</h2>
+                <p>Đề xuất Ban giám hiệu xem xét học bổng.</p>
+                <p>Xin miễn giảm học phí cho H.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide">
+        <div class="step-number">B4</div>
+        <h2 class="anim-slide-right">Lập kế hoạch cụ thể</h2>
+        <p>Biến ý tưởng thành hành động có tổ chức.</p>
+    </div>
+
+    <div class="slide">
+        <div class="card anim-zoom-in">
+            <h2>⏳ Thời gian</h2>
+            <p>Xác định rõ thời điểm bắt đầu và kết thúc đợt quyên góp.</p>
+            <p>Lịch thăm hỏi cụ thể từng tuần.</p>
+        </div>
+    </div>
+
+    <div class="slide">
+        <div class="split-layout">
+            <div class="split-text anim-flip">
+                <h2>🙋 Người chịu trách nhiệm</h2>
+                <p>Lớp trưởng: Tổng quản lý.</p>
+                <p>Thủ quỹ: Minh bạch tài chính.</p>
+                <p>Các tổ trưởng: Đôn đốc thành viên.</p>
+            </div>
+            <div class="split-visual anim-fade-up">📋</div>
+        </div>
+    </div>
+
+    <div class="slide">
+        <div class="card anim-slide-left" style="background: var(--bg-yellow);">
+            <h2>Theo dõi kết quả</h2>
+            <p>Cập nhật số tiền quyên góp công khai hàng ngày.</p>
+            <p>Ghi nhận lại nhật ký hỗ trợ.</p>
+        </div>
+    </div>
+
+    <div class="slide">
+        <div class="step-number">B5</div>
+        <div class="card anim-blur">
+            <h2>Tổng kết & Chia sẻ</h2>
+            <p>Học sinh viết cảm nhận sau hoạt động.</p>
+            <p>Rút kinh nghiệm cho các hoạt động thiện nguyện sau này.</p>
+        </div>
+    </div>
+
+    <div class="slide">
+        <span class="icon-large anim-morph">🎁</span>
+        <h2 class="anim-fade-up">Hỗ trợ kịp thời</h2>
+        <p class="anim-fade-up">Bạn H nhận được sự giúp đỡ cả vật chất lẫn tinh thần ngay lúc ngặt nghèo nhất.</p>
+    </div>
+
+    <div class="slide">
+        <div class="split-layout">
+            <div class="split-visual anim-slide-right">🚀</div>
+            <div class="split-text anim-slide-left">
+                <h2>Động lực học tập</h2>
+                <p>H yên tâm hơn để tiếp tục đến trường.</p>
+                <p>Kết quả học tập được duy trì ổn định.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide">
+        <div class="card anim-zoom-in">
+            <h2>Tập thể đoàn kết</h2>
+            <p>Lớp học trở thành một gia đình thứ hai.</p>
+            <p>Mọi người hiểu và gắn kết với nhau hơn.</p>
+        </div>
+    </div>
+
+    <div class="slide">
+        <h2 class="anim-flip">Nuôi dưỡng nhân ái</h2>
+        <p class="anim-fade-up">Hình thành ý thức trách nhiệm xã hội.</p>
+        <p class="anim-fade-up">Lan tỏa năng lượng tích cực.</p>
+    </div>
+
+    <div class="slide">
+        <div class="card anim-slide-left" style="background: var(--bg-white);">
+            <h3>Bài học cho Giáo viên</h3>
+            <h2>Quan tâm sâu sát</h2>
+            <p>Cần nắm bắt hoàn cảnh học sinh sớm để can thiệp kịp thời.</p>
+        </div>
+    </div>
+
+    <div class="slide">
+        <div class="split-layout">
+            <div class="split-text anim-slide-right">
+                <h3>Bài học cho Học sinh</h3>
+                <h2>Biết yêu thương</h2>
+                <p>Không vô cảm trước nỗi đau của người khác.</p>
+                <p>Học cách cho đi để nhận lại niềm vui.</p>
+            </div>
+            <div class="split-visual anim-blur">❤️</div>
+        </div>
+    </div>
+
+    <div class="slide">
+        <div class="card anim-morph">
+            <h2>Giá trị cuộc sống</h2>
+            <p>Mỗi hoạt động hỗ trợ là một bài học thực tế quý giá.</p>
+            <p>Rèn luyện nhân cách tốt đẹp.</p>
+        </div>
+    </div>
+
+    <div class="slide">
+        <h2 class="anim-zoom-in">Không ai bị bỏ lại</h2>
+        <p class="anim-fade-up">Trong một tập thể vững mạnh, mọi thành viên đều quan trọng.</p>
+        <div class="anim-fade-up" style="font-size: 3rem; margin-top: 20px;">🌟🤝🌟</div>
+    </div>
+
+    <div class="slide">
+        <div class="quote-box anim-fade-up" style="max-width: 800px;">
+            <p>“Một bàn tay đưa ra có thể thay đổi cả cuộc đời người khác.”</p>
+        </div>
+    </div>
+
+    <div class="slide">
+        <div class="card anim-zoom-in" style="background: var(--bg-yellow);">
+            <h1>Cảm ơn!</h1>
+            <p>Đã lắng nghe bài trình bày.</p>
+            <button class="btn-restart" onclick="restartPresentation()">Bắt đầu lại ↻</button>
+        </div>
+    </div>
+
+</div>
+
+<div class="controls">
+    <button class="btn-nav" id="prevBtn">←</button>
+    <button class="btn-nav" id="nextBtn">→</button>
+</div>
+<div class="keyboard-hint">Dùng phím mũi tên ← → hoặc Kéo chuột để chuyển slide</div>
+
+<script>
+    // --- JAVASCRIPT LOGIC ---
+    document.addEventListener('DOMContentLoaded', () => {
+        const slides = document.querySelectorAll('.slide');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        let currentSlide = 0;
+        const totalSlides = slides.length;
+
+        // Hiển thị slide đầu tiên
+        showSlide(currentSlide);
+
+        // Hàm chuyển slide
+        function showSlide(index) {
+            // Xóa class active ở slide hiện tại
+            slides.forEach(slide => slide.classList.remove('active'));
+            
+            // Xử lý index vòng lặp (hoặc chặn)
+            if (index >= totalSlides) index = 0;
+            if (index < 0) index = totalSlides - 1;
+            
+            currentSlide = index;
+            
+            // Thêm class active cho slide mới để kích hoạt animation
+            slides[currentSlide].classList.add('active');
+        }
+
+        function nextSlide() {
+            if (currentSlide < totalSlides - 1) {
+                showSlide(currentSlide + 1);
+            }
+        }
+
+        function prevSlide() {
+            if (currentSlide > 0) {
+                showSlide(currentSlide - 1);
+            }
+        }
+
+        // Sự kiện Click
+        nextBtn.addEventListener('click', nextSlide);
+        prevBtn.addEventListener('click', prevSlide);
+
+        // Sự kiện Bàn phím
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === 'Space') {
+                nextSlide();
+            } else if (e.key === 'ArrowLeft') {
+                prevSlide();
+            }
+        });
+
+        // --- DRAG / SWIPE LOGIC ---
+        let startX = 0;
+        let isDragging = false;
+
+        const presentation = document.getElementById('presentation');
+
+        // Mouse Events
+        presentation.addEventListener('mousedown', (e) => {
+            startX = e.clientX;
+            isDragging = true;
+        });
+
+        presentation.addEventListener('mouseup', (e) => {
+            if (!isDragging) return;
+            handleSwipe(e.clientX);
+            isDragging = false;
+        });
+
+        // Touch Events (Mobile)
+        presentation.addEventListener('touchstart', (e) => {
+            startX = e.touches[0].clientX;
+            isDragging = true;
+        });
+
+        presentation.addEventListener('touchend', (e) => {
+            if (!isDragging) return;
+            handleSwipe(e.changedTouches[0].clientX);
+            isDragging = false;
+        });
+
+        function handleSwipe(endX) {
+            const threshold = 50; // Khoảng cách tối thiểu để tính là swipe
+            const diff = startX - endX;
+
+            if (Math.abs(diff) > threshold) {
+                if (diff > 0) {
+                    // Kéo sang trái -> Next
+                    nextSlide();
+                } else {
+                    // Kéo sang phải -> Prev
+                    prevSlide();
+                }
+            }
+        }
+
+        // Restart function (Global scope để nút gọi được)
+        window.restartPresentation = function() {
+            showSlide(0);
+        }
+    });
+</script>
+
+</body>
+</html>
